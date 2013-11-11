@@ -1,4 +1,4 @@
-package org.jboss.tools.vpe.anyxpcom;
+package org.jboss.tools.vpe.anyxpcom.test;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
@@ -8,6 +8,7 @@ import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.jboss.tools.vpe.anyxpcom.AnyXPCOM;
 import org.mozilla.interfaces.nsIDOMWindow;
 
 /**
@@ -42,36 +43,12 @@ public class MainStart {
 //				String name = element.getNodeName();
 //				System.out.println(" name = " + name);
 				
-				browser.execute(
-						"window.nsiArray = [window];" +
-						"window.nsiId = 0;"+
-						"window.convertNsi = function(param) {" +
-							"if(param !== null) {"+
-							   "if (typeof param === 'object' || typeof param === 'function') {"+ // in webkit typeof document.childNodes is 'function'
-							     "if (param.constructor === Array) {"+
-							       "var nsiParam = [];"+
-							       "for ( var i = 0; i < param.length; i++) {"+
-							          "nsiParam[i] = convertNsi(param[i]);"+
-							       "}"+
-							       "return nsiParam;"+
-							     "} else {"+
-							        "if (!param.hasOwnProperty('nsiId')) {"+
-							            "param.nsiId = nsiArray.length;"+
-							            "nsiArray[nsiArray.length] = param;"+
-							        "}"+
-							        "return 'nsiId=' + param.nsiId;"+
-							     "}"+
-							   "}" +
-							 "}"+    
-						   "return param;"+
-						"}");
-				nsIDOMWindow window = NsiUtil.createProxy(browser, 0, nsIDOMWindow.class);
+				AnyXPCOM.initBrowser(browser);
 				browser.execute("window.foo = {};" +
 						"foo.bar = function (arg) {" +
 							"return document.createElement(arg);" +
 						"}");
-				Foo foo = NsiUtil.convertFromNsi(
-						browser.evaluate("return convertNsi(foo)"), Foo.class, browser);
+				Foo foo = AnyXPCOM.convertExpressionFromNsi("foo", Foo.class, browser);
 				
 //				long t2 = System.nanoTime();
 //				for (int i = 0; i < 10000; i++) {
@@ -89,6 +66,7 @@ public class MainStart {
 //				System.out.println((t1 - t0) * 1e-9);
 
 			}
+
 			@Override
 			public void changed(ProgressEvent event) {
 				

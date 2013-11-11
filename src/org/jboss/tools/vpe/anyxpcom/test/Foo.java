@@ -1,4 +1,4 @@
-package org.jboss.tools.vpe.anyxpcom;
+package org.jboss.tools.vpe.anyxpcom.test;
 
 import org.mozilla.interfaces.nsIDOMDocument;
 

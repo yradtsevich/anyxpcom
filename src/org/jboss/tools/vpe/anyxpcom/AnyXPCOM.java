@@ -11,27 +11,58 @@ import org.mozilla.xpcom.XPCOMException;
  * @author Yahor Radtsevich (yradtsevich)
  * @author Denis Maliarevich (dmaliarevich)
  */
-public class NsiUtil {
+public class AnyXPCOM {
 	public static <T extends nsISupports> T queryInterface(
 			nsISupports object,	Class<T> type) throws XPCOMException {
 		NumeratedNsi numeratedNsi = (NumeratedNsi)object;
 		return createProxy(numeratedNsi.getBrowser(), numeratedNsi.getNsiId(), type);
 	}
 	
-	public static <T> T createProxy(Browser browser, int id, Class<T> type) {
-//		System.out.println(String.format("id = %s, type = %s", id, type));
+	/**
+	 * Get {@code browser} ready to work with {@link AnyXPCOM}'s methods
+	 */
+	public static void initBrowser(final Browser browser) {
+		browser.execute(
+			"if (!window.nsiArray) {" +
+				"window.nsiArray = [];" +
+				"window.nsiId = 0;"+
+				"window.convertNsi = function(param) {" +
+					"if(param !== null) {"+
+					   "if (typeof param === 'object' || typeof param === 'function') {"+ // in webkit typeof document.childNodes is 'function'
+					     "if (param.constructor === Array) {"+
+					       "var nsiParam = [];"+
+					       "for ( var i = 0; i < param.length; i++) {"+
+					          "nsiParam[i] = convertNsi(param[i]);"+
+					       "}"+
+					       "return nsiParam;"+
+					     "} else {"+
+					        "if (!param.hasOwnProperty('nsiId')) {"+
+					            "param.nsiId = nsiArray.length;"+
+					            "nsiArray[nsiArray.length] = param;"+
+					        "}"+
+					        "return 'nsiId=' + param.nsiId;"+
+					     "}"+
+					   "}" +
+					 "}"+    
+				   "return param;"+
+				"}" +
+			"}");
+	}
+
+	public static <T> T convertExpressionFromNsi(String jsExpression, Class<T> returnType, Browser browser) {
+		return convertFromNsi(browser.evaluate("return convertNsi(" + jsExpression + ")"), returnType, browser);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static <T> T createProxy(Browser browser, int id, Class<T> type) {
+		//System.out.println(String.format("id = %s, type = %s", id, type));
 		return (T) Proxy.newProxyInstance(
-				NsiUtil.class.getClassLoader(), 
+				AnyXPCOM.class.getClassLoader(), 
 				new Class[] {type, NumeratedNsi.class}, 
 				new NsiProxy(browser, id));
 	}
 	
-	/**
-	 * 
-	 * @param param
-	 * @param returnType may be
-	 * @return
-	 */
+
 	@SuppressWarnings("unchecked")
 	public static <T> T convertFromNsi(Object param, Class<T> returnType, Browser browser) {
 		if (param == null) {
@@ -61,7 +92,7 @@ public class NsiUtil {
 			int id = 0;
 			if ((param instanceof String) && ((String)param).startsWith("nsiId=")) {
 				id = Integer.parseInt(((String)param).substring(6));
-				return NsiUtil.createProxy(browser, id, returnType);
+				return AnyXPCOM.createProxy(browser, id, returnType);
 			}
 		}
 		return (T) param;

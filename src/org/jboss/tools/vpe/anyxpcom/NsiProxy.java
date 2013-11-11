@@ -72,7 +72,7 @@ public class NsiProxy implements InvocationHandler {
 				result = null;
 			} else { 
 				result = browser.evaluate("return convertNsi(" + expression.toString() + ')');
-				result = NsiUtil.convertFromNsi(result, returnType, browser);
+				result = AnyXPCOM.convertFromNsi(result, returnType, browser);
 			}			
 		} catch (Exception e) {
 			result = null;// XXX
