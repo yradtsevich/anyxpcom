@@ -25,7 +25,6 @@ public class AnyXPCOM {
 		browser.execute(
 			"if (!window.nsiArray) {" +
 				"window.nsiArray = [];" +
-				"window.nsiId = 0;"+
 				"window.convertNsi = function(param) {" +
 					"if(param !== null) {"+
 					   "if (typeof param === 'object' || typeof param === 'function') {"+ // in webkit typeof document.childNodes is 'function'
@@ -49,8 +48,8 @@ public class AnyXPCOM {
 			"}");
 	}
 
-	public static <T> T convertExpressionFromNsi(String jsExpression, Class<T> returnType, Browser browser) {
-		return convertFromNsi(browser.evaluate("return convertNsi(" + jsExpression + ")"), returnType, browser);
+	public static <T> T queryInterface(String jsExpression, Class<T> type, Browser browser) {
+		return convertFromNsi(browser.evaluate("return convertNsi(" + jsExpression + ")"), type, browser);
 	}
 	
 	@SuppressWarnings("unchecked")

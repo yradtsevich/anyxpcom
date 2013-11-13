@@ -15,11 +15,6 @@ import org.mozilla.interfaces.nsIDOMWindow;
  * @author Yahor Radtsevich (yradtsevich)
  */
 public class MainStart {
-
-	public MainStart() {
-		// TODO Auto-generated constructor stub
-	}
-	
 	public static void main(String[] args) {
 		Display display = new Display();
 		Shell shell = new Shell(display);
@@ -48,7 +43,10 @@ public class MainStart {
 						"foo.bar = function (arg) {" +
 							"return document.createElement(arg);" +
 						"}");
-				Foo foo = AnyXPCOM.convertExpressionFromNsi("foo", Foo.class, browser);
+				Foo foo = AnyXPCOM.queryInterface("foo", Foo.class, browser);
+				nsIDOMWindow window = AnyXPCOM.queryInterface("window", nsIDOMWindow.class, browser);
+				System.out.println(window.getDocument().getDocumentElement().getNodeName());
+//				System.out.println(XPCOM.queryInterface(window, nsIDOMWindow2.class));
 				
 //				long t2 = System.nanoTime();
 //				for (int i = 0; i < 10000; i++) {
@@ -59,7 +57,7 @@ public class MainStart {
 //				
 //				long t0 = System.nanoTime();
 //				for (int i = 0; i < 10000; i++) {
-					System.out.println(foo.bar("div"));
+//					System.out.println(foo.bar("div"));
 //					foo.bar("div");
 //				}
 //				long t1 = System.nanoTime();
